@@ -1,3 +1,27 @@
+<?php
+
+include("db.php");
+$conn = dbh();
+
+
+if (isset($_POST['submit'])){
+
+  $tdate = date("d-m-y"); ;
+  $br = $_POST['br'];
+  $comment = $_POST['comment'];
+
+  date_default_timezone_set('UTC');
+
+  if (!empty($br) || !empty($comment)){
+    $ins = $conn->prepare("INSERT INTO br (date, br, comment) VALUES(:tdate, :br, :comment)");
+    $ins->bindParam(':tdate', $tdate);
+    $ins->bindParam(':br', $br);
+    $ins->bindParam(':comment', $comment);
+    $ins->execute();
+  }
+}
+?>
+
 <!DOCTYPE html>
 <html>
 <body>
@@ -22,28 +46,29 @@
           <th>Battle Rating</th>
           <th>Comments</th>
 
-          <tr>
-          <td>06/07/15 </td>
-          <td>153k </td>
-          <td>My starting poiint for checking where i'm up to. Waiting for bigs events such as Crystals/Mount/Tech. Todays event were just diamond which gave me +3k. Will get another piece of 50 leg gear tonight. Should push me above 155k for tomorrow. Aiming for 200k on the 14th.</td>
+          <?php
+          $sth = $conn->prepare("SELECT * FROM br ORDER BY id DESC");
+          $sth->execute();
+          $tbd = $sth->fetchAll();
 
-          <tr>
-          <td>07/07/15  </td>
-          <td>156k </td>
-          <td>Got my new piece plus kid gems (few lvl 5s). Don't expect much of a BR boost until next event. No exciting events currently.</td>
+          foreach ($tbd as $row) {
 
-          <tr>
-          <td>08/07/15  </td>
-          <td>157k </td>
-          <td>As noted y/d. I woudn't get much today. However whip event tomorrow so should be going big. Ideally I want 175/180k from it. Hopefully Soul event soon which should put me around 200k. If I don't hit at least 170 tomorrow I'll be disappointed.</td>
+          echo "<tr>";
+          echo "<td>" . $row['date'] . "</td>";
+          echo "<td>" . $row['br'] . "</td>";
+          echo "<td>" . $row['comment'] . "</td>";
+        }
+          ?>
+
         </table>
+
       </div>
 
     <div id="inputdata">
-      <form>
-        <input placeholder="BR..." type="text" name="newbr">
-        <textarea placeholder="Comments..." cols="65" rows="15"></textarea><br />
-        <input type="submit" value="Submit">
+      <form action=<?php echo $_SERVER["PHP_SELF"]; ?> method="post">
+        <input name="br" placeholder="BR..." type="text" name="newbr">
+        <textarea name="comment" placeholder="Comments..." cols="65" rows="15"></textarea><br />
+        <input name="submit" type="submit" value="Submit">
       </form>
 
     </div>
